@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birbank HRIS Diagnostic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #ED1C24;
+            --dark: #121212;
+            --grey: #F4F5F7;
+            --white: #FFFFFF;
+            --border: #E2E8F0;
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--grey); 
+            color: var(--dark); 
+            padding: 40px;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--white); 
+            padding: 20px 30px; 
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center; 
+            margin-bottom: 30px; 
+            border-left: 5px solid var(--primary);
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Enhanced Cards */
+        .cards-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 25px; 
+            margin-bottom: 40px; 
+        }
+        
+        .system-card { 
+            background: linear-gradient(135deg, var(--white) 0%, #FAFBFC 100%);
+            padding: 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            border-top: 5px solid var(--card-color);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.6s ease backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .system-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .system-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .system-card:nth-child(1) { animation-delay: 0.1s; --card-color: #94A3B8; }
+        .system-card:nth-child(2) { animation-delay: 0.2s; --card-color: var(--primary); }
+        .system-card:nth-child(3) { animation-delay: 0.3s; --card-color: #3B82F6; }
+
+        @keyframes fadeInUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .system-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .card-title-section h3 { 
+            font-size: 14px; 
+            color: #64748B; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .card-title-section h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--card-color), rgba(0,0,0,0.1));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .score-section {
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        .big-score { 
+            font-size: 56px; 
+            font-weight: 800; 
+            line-height: 1;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--card-color), rgba(0,0,0,0.6));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: transform 0.3s ease;
+        }
+
+        .system-card:hover .big-score {
+            transform: scale(1.15);
+        }
+
+        .score-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748B;
+            font-weight: 600;
+        }
+        
+        .progress { 
+            height: 8px; 
+            background: #F1F5F9; 
+            border-radius: 4px; 
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .bar { 
+            height: 100%; 
+            background: var(--card-color);
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748B;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .card-btn:hover {
+            background: var(--card-color);
+            color: white;
+            border-color: var(--card-color);
+            transform: translateY(-2px);
+        }
+
+        /* Table with Expandable Rows */
+        .table-container { 
+            background: white; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .table-header {
+            padding: 25px 30px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .table-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .table-stat {
+            text-align: center;
+        }
+
+        .table-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .table-stat-label {
+            font-size: 11px;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        table { width: 100%; border-collapse: collapse; }
+        
+        th { 
+            text-align: left; 
+            padding: 15px 20px; 
+            background: #F8FAFC; 
+            color: #64748B; 
+            font-size: 11px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border); 
+        }
+        
+        td { 
+            padding: 15px 20px; 
+            border-bottom: 1px solid var(--border); 
+            font-size: 14px; 
+            vertical-align: middle; 
+        }
+        
+        .main-row { 
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .main-row:hover { 
+            background-color: #F8FAFC;
+        }
+
+        .main-row.expanded {
+            background-color: #FFF5F5;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s ease;
+            color: #94A3B8;
+        }
+
+        .main-row.expanded .expand-icon {
+            transform: rotate(90deg);
+            color: var(--primary);
+        }
+
+        /* COMPACT Detail Row */
+        .detail-row {
+            display: none;
+            background: linear-gradient(135deg, #FAFBFC 0%, #F8FAFC 100%);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .detail-row.show {
+            display: table-row;
+            animation: slideDown 0.3s ease;
+        }
+
+        .detail-content {
+            padding: 20px 30px;
+        }
+
+        .detail-compact {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border-left: 2px solid var(--primary);
+        }
+
+        .detail-item-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94A3B8;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .detail-item-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .detail-notes-compact {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 3px solid #3B82F6;
+        }
+
+        .detail-notes-compact .detail-item-label {
+            margin-bottom: 6px;
+        }
+
+        .detail-notes-compact .detail-item-value {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #475569;
+        }
+
+        /* Badges */
+        .badge { 
+            padding: 5px 12px; 
+            border-radius: 6px; 
+            font-size: 10px; 
+            font-weight: 700; 
+            display: inline-block;
+            text-align: center;
+            transition: transform 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge:hover {
+            transform: scale(1.05);
+        }
+        
+        .b-Yes { background: #DCFCE7; color: #166534; }
+        .b-No { background: #FEE2E2; color: #991B1B; }
+        .b-Partial { background: #FEF3C7; color: #92400E; }
+        .b-Custom { background: #DBEAFE; color: #1E40AF; }
+
+        .p-Critical { background: #FEE2E2; color: #991B1B; font-weight: 700; }
+        .p-High { background: #FED7AA; color: #9A3412; }
+        .p-Medium { background: #FEF3C7; color: #92400E; }
+        .p-Low { background: #E0E7FF; color: #3730A3; }
+
+        .c-Easy { background: #DCFCE7; color: #166534; }
+        .c-Medium { background: #FEF3C7; color: #92400E; }
+        .c-Complex { background: #FED7AA; color: #9A3412; }
+        .c-Very.Complex { background: #FEE2E2; color: #991B1B; }
+
+        /* Edit Button */
+        .btn-edit {
+            background: white; 
+            border: 1px solid var(--border); 
+            color: #64748B;
+            width: 36px; 
+            height: 36px; 
+            border-radius: 8px; 
+            cursor: pointer;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: all 0.3s ease;
+        }
+        
+        .btn-edit:hover { 
+            border-color: var(--primary); 
+            color: white;
+            background: var(--primary);
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0,0,0,0.6); 
+            z-index: 1000;
+            display: none; 
+            justify-content: center; 
+            align-items: center;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background: white; 
+            width: 90%;
+            max-width: 700px;
+            padding: 0;
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            animation: modalSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-50px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .modal-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 25px 30px;
+            background: linear-gradient(135deg, var(--grey) 0%, #FFFFFF 100%);
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .modal-title { 
+            font-size: 20px; 
+            font-weight: 700; 
+            color: var(--dark); 
+        }
+        
+        .close-btn { 
+            cursor: pointer; 
+            color: #94A3B8; 
+            font-size: 28px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #FEE2E2;
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        
+        .form-label { 
+            display: block; 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: #64748B; 
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-control {
+            width: 100%; 
+            padding: 12px 14px; 
+            border: 2px solid var(--border); 
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif; 
+            font-size: 14px; 
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus { 
+            outline: none; 
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(237, 28, 36, 0.1);
+        }
+        
+        select.form-control { background-color: white; cursor: pointer; }
+
+        .modal-footer { 
+            padding: 20px 30px;
+            background: var(--grey);
+            border-top: 2px solid var(--border);
+            display: flex; 
+            justify-content: flex-end; 
+            gap: 12px;
+        }
+        
+        .btn { 
+            padding: 12px 24px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            font-size: 13px; 
+            cursor: pointer; 
+            border: none;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-cancel { 
+            background: white;
+            color: #475569;
+            border: 2px solid var(--border);
+        }
+
+        .btn-cancel:hover {
+            background: #F1F5F9;
+        }
+        
+        .btn-save { 
+            background: var(--primary); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+        
+        .btn-save:hover { 
+            background: #D6151C;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(237, 28, 36, 0.4);
+        }
+        
+        .btn-save:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+        }
+
+        /* About System Modal */
+        .about-content {
+            max-width: 900px;
+        }
+
+        .about-header {
+            background: linear-gradient(135deg, var(--system-color) 0%, rgba(0,0,0,0.7) 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .about-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .about-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .about-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 30px;
+            background: var(--grey);
+        }
+
+        .about-stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .about-stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--system-color);
+            margin-bottom: 5px;
+        }
+
+        .about-stat-label {
+            font-size: 11px;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .about-description {
+            padding: 30px;
+            line-height: 1.8;
+            font-size: 15px;
+            color: #475569;
+        }
+
+        .about-pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 0 30px 30px 30px;
+        }
+
+        .about-section {
+            background: var(--grey);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .about-section h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .about-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .about-list li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            font-size: 13px;
+        }
+
+        .about-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            font-size: 20px;
+        }
+
+        .pros-section li::before {
+            color: var(--success);
+        }
+
+        .cons-section li::before {
+            color: var(--danger);
+        }
+
+        /* Loader */
+        .loader { 
+            position: fixed; 
+            top:0; 
+            left:0; 
+            width:100%; 
+            height:100%; 
+            background:white; 
+            z-index:9999; 
+            display:flex; 
+            justify-content:center; 
+            align-items:center;
+            animation: fadeOut 0.5s ease 1s forwards;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; pointer-events: none; }
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--grey);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--grey);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader">
+        <div>
+            <div class="spinner"></div>
+            <p style="color:#666; margin-top:15px; font-size: 14px; font-weight: 600;">Sistem məlumatları yüklənir...</p>
+        </div>
+    </div>
+
+    <div class="header">
+        <h1 style="font-size: 28px; font-weight: 700;">Birbank HRIS <span style="color: var(--primary)">Diaqnostika Platforması</span></h1>
+        <div style="font-size:12px; font-weight:600; color:#27AE60; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-circle" style="font-size: 8px; animation: pulse 2s ease-in-out infinite;"></i>
+            Canlı Sinxronizasiya
+        </div>
+    </div>
+
+    <div class="cards-grid">
+        <!-- HRB Card -->
+        <div class="system-card" data-system="hrb">
+            <div class="card-header">
+                <div class="card-title-section">
+                    <h3>Mövcud Sistem</h3>
+                    <h2>HRB</h2>
+                </div>
+                <div class="card-icon" style="background: linear-gradient(135deg, #94A3B8, #64748B);">
+                    <i class="fas fa-database"></i>
+                </div>
+            </div>
+            <div class="score-section">
+                <div class="big-score" id="sc-hrb">0%</div>
+                <div class="score-label">Əhatə Faizi</div>
+            </div>
+            <div class="progress">
+                <div class="bar" id="bar-hrb" style="background: #94A3B8; width:0%"></div>
+            </div>
+            <div class="card-actions">
+                <button class="card-btn" onclick="showAboutModal('hrb')">
+                    <i class="fas fa-info-circle"></i> Haqqında
+                </button>
+                <button class="card-btn" onclick="showProsConsModal('hrb')">
+                    <i class="fas fa-chart-bar"></i> Analiz
+                </button>
+            </div>
+        </div>
+
+        <!-- 1C Card -->
+        <div class="system-card" data-system="1c">
+            <div class="card-header">
+                <div class="card-title-section">
+                    <h3>Təklif Olunan Həll</h3>
+                    <h2>1C ERP</h2>
+                </div>
+                <div class="card-icon" style="background: linear-gradient(135deg, var(--primary), #C01018);">
+                    <i class="fas fa-cogs"></i>
+                </div>
+            </div>
+            <div class="score-section">
+                <div class="big-score" id="sc-1c" style="background: linear-gradient(135deg, var(--primary), #C01018); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0%</div>
+                <div class="score-label">Əhatə Faizi</div>
+            </div>
+            <div class="progress">
+                <div class="bar" id="bar-1c" style="background: var(--primary); width:0%"></div>
+            </div>
+            <div class="card-actions">
+                <button class="card-btn" onclick="showAboutModal('1c')">
+                    <i class="fas fa-info-circle"></i> Haqqında
+                </button>
+                <button class="card-btn" onclick="showProsConsModal('1c')">
+                    <i class="fas fa-chart-bar"></i> Analiz
+                </button>
+            </div>
+        </div>
+
+        <!-- SAP Card -->
+        <div class="system-card" data-system="sap">
+            <div class="card-header">
+                <div class="card-title-section">
+                    <h3>Korporativ Həll</h3>
+                    <h2>SAP SuccessFactors</h2>
+                </div>
+                <div class="card-icon" style="background: linear-gradient(135deg, #3B82F6, #2563EB);">
+                    <i class="fas fa-rocket"></i>
+                </div>
+            </div>
+            <div class="score-section">
+                <div class="big-score" id="sc-sap" style="background: linear-gradient(135deg, #3B82F6, #2563EB); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0%</div>
+                <div class="score-label">Əhatə Faizi</div>
+            </div>
+            <div class="progress">
+                <div class="bar" id="bar-sap" style="background: #3B82F6; width:0%"></div>
+            </div>
+            <div class="card-actions">
+                <button class="card-btn" onclick="showAboutModal('sap')">
+                    <i class="fas fa-info-circle"></i> Haqqında
+                </button>
+                <button class="card-btn" onclick="showProsConsModal('sap')">
+                    <i class="fas fa-chart-bar"></i> Analiz
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div class="table-header">
+            <h2>Tələblər Matrisi</h2>
+            <div class="table-stats">
+                <div class="table-stat">
+                    <div class="table-stat-value" id="total-reqs">0</div>
+                    <div class="table-stat-label">Ümumi</div>
+                </div>
+                <div class="table-stat">
+                    <div class="table-stat-value" style="color: var(--danger);" id="critical-reqs">0</div>
+                    <div class="table-stat-label">Kritik</div>
+                </div>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th width="3%"></th>
+                    <th width="3%"></th>
+                    <th width="12%">Modul</th>
+                    <th width="22%">Tələb</th>
+                    <th width="8%">Prioritet</th>
+                    <th width="10%">HRB</th>
+                    <th width="10%">1C ERP</th>
+                    <th width="10%">SAP</th>
+                    <th width="8%">Risk</th>
+                    <th width="6%">Təsir</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Tələbi Redaktə Et</div>
+                <div class="close-btn" onclick="closeModal()">&times;</div>
+            </div>
+            
+            <div class="modal-body">
+                <input type="hidden" id="edit-id">
+
+                <div class="form-group">
+                    <label class="form-label">Tələb Təsviri</label>
+                    <textarea id="edit-req" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Prioritet Səviyyəsi</label>
+                    <select id="edit-priority" class="form-control">
+                        <option value="Critical">Critical</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">HRB (Legacy)</label>
+                        <select id="edit-hrb" class="form-control">
+                            <option value="No">No</option>
+                            <option value="Partial">Partial</option>
+                            <option value="Custom">Custom</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">1C ERP</label>
+                        <select id="edit-1c" class="form-control">
+                            <option value="No">No</option>
+                            <option value="Partial">Partial</option>
+                            <option value="Custom">Custom</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">SAP SF</label>
+                        <select id="edit-sap" class="form-control">
+                            <option value="No">No</option>
+                            <option value="Partial">Partial</option>
+                            <option value="Custom">Custom</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Risk Səviyyəsi</label>
+                    <select id="edit-risk" class="form-control">
+                        <option value="Critical">Critical</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Qeydlər</label>
+                    <textarea id="edit-notes" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal()">Ləğv et</button>
+                <button class="btn btn-save" onclick="saveChanges()" id="btn-save">
+                    <i class="fas fa-save"></i> Yadda saxla
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANALYSIS MODAL -->
+    <div class="modal-overlay" id="prosConsModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title" id="pc-system-name">Sistem Analizi</div>
+                <div class="close-btn" onclick="closeProsConsModal()">&times;</div>
+            </div>
+            
+            <div class="modal-body">
+                <div style="text-align: center; padding: 30px; background: var(--grey); border-radius: 12px; margin-bottom: 25px;">
+                    <div id="pc-score" style="font-size: 64px; font-weight: 800; line-height: 1; margin-bottom: 8px;">0%</div>
+                    <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #64748B; font-weight: 600;">Əhatə Faizi</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+                    <div style="background: var(--grey); padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 11px; color: #64748B; margin-bottom: 5px; text-transform: uppercase;">Ümumi</div>
+                        <div id="pc-total" style="font-size: 24px; font-weight: 700;">0</div>
+                    </div>
+                    <div style="background: #F0FDF4; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 11px; color: #64748B; margin-bottom: 5px; text-transform: uppercase;">Dəstəklənir</div>
+                        <div id="pc-yes" style="font-size: 24px; font-weight: 700; color: var(--success);">0</div>
+                    </div>
+                    <div style="background: #FEF3C7; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 11px; color: #64748B; margin-bottom: 5px; text-transform: uppercase;">Qismən</div>
+                        <div id="pc-partial" style="font-size: 24px; font-weight: 700; color: var(--warning);">0</div>
+                    </div>
+                    <div style="background: #FEF2F2; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 11px; color: #64748B; margin-bottom: 5px; text-transform: uppercase;">Yoxdur</div>
+                        <div id="pc-no" style="font-size: 24px; font-weight: 700; color: var(--danger);">0</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i> Güclü Tərəflər
+                    </h3>
+                    <ul id="pros-list" style="list-style: none; padding: 0;"></ul>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-times-circle" style="color: var(--danger);"></i> Zəif Tərəflər
+                    </h3>
+                    <ul id="cons-list" style="list-style: none; padding: 0;"></ul>
+                </div>
+
+                <div style="padding-top: 25px; border-top: 2px solid var(--border);">
+                    <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-layer-group" style="color: #64748B;"></i> Modul Analizi
+                    </h3>
+                    <div id="category-breakdown"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABOUT SYSTEM MODAL -->
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal-content about-content">
+            <div class="about-header" id="about-header">
+                <div class="close-btn" onclick="closeAboutModal()" style="position: absolute; top: 20px; right: 25px;">&times;</div>
+                <h1 id="about-title">Sistem Adı</h1>
+                <p id="about-subtitle">Sistem Tipi</p>
+            </div>
+
+            <div class="about-stats">
+                <div class="about-stat-box">
+                    <div class="about-stat-value" id="about-score">0%</div>
+                    <div class="about-stat-label">Əhatə</div>
+                </div>
+                <div class="about-stat-box">
+                    <div class="about-stat-value" id="about-supported">0</div>
+                    <div class="about-stat-label">Dəstəklənir</div>
+                </div>
+                <div class="about-stat-box">
+                    <div class="about-stat-value" id="about-partial">0</div>
+                    <div class="about-stat-label">Qismən</div>
+                </div>
+                <div class="about-stat-box">
+                    <div class="about-stat-value" id="about-missing">0</div>
+                    <div class="about-stat-label">Yoxdur</div>
+                </div>
+            </div>
+
+            <div class="about-description" id="about-description">
+                <!-- System description will be injected here -->
+            </div>
+
+            <div class="about-pros-cons">
+                <div class="about-section pros-section">
+                    <h3><i class="fas fa-check-circle" style="color: var(--success);"></i> Güclü Tərəflər</h3>
+                    <ul class="about-list" id="about-pros-list"></ul>
+                </div>
+                <div class="about-section cons-section">
+                    <h3><i class="fas fa-exclamation-circle" style="color: var(--danger);"></i> Məhdudiyyətlər</h3>
+                    <ul class="about-list" id="about-cons-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbyBGDQEMaL9rDQf99cmUAkIY50Jyrs9OGxWH4w6-oarymWOhCjjktXEoFiDV_OLUOXDMg/exec";
+        // ==========================================
+
+        let globalData = [];
+
+        const systemDescriptions = {
+            hrb: {
+                title: "HRB (Mövcud Sistem)",
+                subtitle: "On-Premise Həll",
+                color: "#94A3B8",
+                description: "HRB hazırda Birbank (ana şirkət) tərəfindən istifadə olunan legacy HR idarəetmə sistemidir. Qeyd edək ki, bu sistem törəmə şirkətlər tərəfindən istifadə olunmur və yalnız ana şirkətdə fəaliyyət göstərir. Ənənəvi arxitektura əsasında qurulmuş bu sistem, əsas HR əməliyyatlarını - işçi qeydlərini, əsas maaş hesablamalarını və məzuniyyət idarəetməsini təmin edir. Gündəlik əməliyyatlar üçün funksional olsa da, məhdud inteqrasiya imkanları, köhnəlmiş istifadəçi interfeysi və müasir HR təcrübələrinin dəstəklənməsində çətinliklər sistemi ümumi şirkət strukturuna tətbiq etməyi mürəkkəbləşdirir. Platform öz zamanında xidmət göstərsə də, gələcək böyümə və rəqəmsal transformasiya təşəbbüsləri üçün tələb olunan genişlənmə və funksiyalardan məhrumdur.",
+                pros: [
+                    "Birbank əməkdaşları sistemi məlum edir",
+                    "Ana şirkətin mövcud prosesləri ilə tam uyğundur",
+                    "İllik bütün məlumatlar sistemdədir",
+                    "Əsas funksiyalar işləyir",
+                    "Lokal texniki dəstək mövcuddur"
+                ],
+                cons: [
+                    "Yalnız Birbank (ana şirkət) tərəfindən istifadə olunur",
+                    "Törəmə şirkətlər üçün dəstək yoxdur",
+                    "Köhnəlmiş texnologiya və interfeys",
+                    "Mobil əlçatanlıq yoxdur",
+                    "Zəif inteqrasiya imkanları",
+                    "Multi-company strukturu dəstəkləmir"
+                ]
+            },
+            "1c": {
+                title: "1C ERP (ZUP Corp)",
+                subtitle: "Regional Həll Təklifi",
+                color: "#ED1C24",
+                description: "1C ERP MDB ölkələri və Azərbaycanda geniş yayılmış kompleks korporativ resurs planlaşdırma həllidir. Sistem xüsusilə Azərbaycanın mürəkkəb əmək qanunvericiliyi, vergi kodları və DSMF və vergi orqanlarına məcburi hesabat tələbləri ilə əla uyğunlaşır. Güclü maliyyə sistemi inteqrasiyası və çevik konfiqurasiya imkanları ilə 1C, lokal qanunvericilik ilə tam uyğunluğu saxlayaraq modernləşdirməyə səmərəli yol təklif edir. Platformanın Azərbaycanda geniş istifadəsi lokal ekspertiza və dəstəyin mövcudluğunu təmin edir, lakin qlobal ən yaxşı təcrübələr üçün xüsusi konfiqurasiya tələb edə bilər.",
+                pros: [
+                    "Azərbaycan Əmək Məcəlləsinə tam uyğunluq",
+                    "1-Əmək, 4-Əmək, DSMF hesabatları native",
+                    "Maliyyə sistemləri ilə güclü inteqrasiya",
+                    "Lokal texniki dəstək və ekspertiza",
+                    "SAP-dan 3-4 dəfə ucuz qiymət",
+                    "Orta müddətli tətbiqetmə (3-6 ay)",
+                    "Multi-company konfiqurasiya mümkündür"
+                ],
+                cons: [
+                    "Zəif mobil tətbiqlər",
+                    "Cloud-native deyil (əsasən on-premise)",
+                    "Talent management funksiyaları məhdud",
+                    "Global HR best practices custom tələb edir",
+                    "Modern UX/UI yoxdur",
+                    "AI-powered analitika yoxdur"
+                ]
+            },
+            sap: {
+                title: "SAP SuccessFactors",
+                subtitle: "Korporativ Cloud Platforma",
+                color: "#3B82F6",
+                description: "SAP SuccessFactors qlobal səviyyədə minlərlə müəssisənin etibar etdiyi, sənaye liderliyi edən cloud-based İnsan Kapitalı İdarəetmə paketidir. Platform süni intellekt və maşın öyrənməsi ilə gücləndərilmiş kompleks talent management, işçi qüvvəsi planlaşdırması və analitika imkanları təqdim edir. İşə qəbuldan pensiyaya qədər bütün işçi həyat tsiklini əhatə edən modulları ilə SuccessFactors dünya səviyyəli HR təcrübələrini mümkün edir və işçi qüvvəsi meyllərı haqqında dərin fikirlər verir. Lakin korporativ fokus daha yüksək xərc və tətbiqetmə mürəkkəbliyi deməkdir, habelə Azərbaycan-spesifik uyğunluq xüsusiyyətləri xüsusi inkişaf və davamlı xidmət tələb edir.",
+                pros: [
+                    "100+ ölkə üçün qlobal lokalizasiya",
+                    "AI-powered analitika və proqnozlaşdırma",
+                    "Native cloud platforma (daim yenilənir)",
+                    "Talent management best practices",
+                    "Enterprise-grade skallanma",
+                    "Native mobil tətbiqlər (iOS/Android)",
+                    "Güclü multi-entity dəstəyi"
+                ],
+                cons: [
+                    "Yüksək qiymət ($28-38 PEPM, illik $224k-304k)",
+                    "AZ Əmək Məcəlləsi custom development tələb edir",
+                    "Uzun tətbiqetmə müddəti (6-12 ay)",
+                    "1-Əmək, DSMF hesabatları custom",
+                    "Azərbaycan dili dəstəyi partial",
+                    "Kiçik şirkətlər üçün bəzi modullar mövcud deyil"
+                ]
+            }
+        };
+
+        window.onload = function() {
+            if(API_URL.includes("BURAYA")) { 
+                alert("Xahiş olunur Google Apps Script URL-ni əlavə edin!"); 
+                return; 
+            }
+            fetchData();
+        };
+
+        function fetchData() {
+            fetch(API_URL + "?action=read")
+                .then(r => r.json())
+                .then(data => {
+                    globalData = data;
+                    renderTable(data);
+                    calcScores(data);
+                    updateTableStats(data);
+                    setTimeout(() => {
+                        document.getElementById('loader').style.display = 'none';
+                    }, 1000);
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Məlumat yüklənərkən xəta baş verdi. API URL-ni yoxlayın.');
+                });
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            data.forEach((row, index) => {
+                // Main row
+                const tr = document.createElement('tr');
+                tr.className = 'main-row';
+                tr.onclick = () => toggleDetail(row.ID);
+                tr.innerHTML = `
+                    <td>
+                        <i class="fas fa-chevron-right expand-icon" id="icon-${row.ID}"></i>
+                    </td>
+                    <td>
+                        <button class="btn-edit" onclick="event.stopPropagation(); openModal(${row.ID})">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </td>
+                    <td>
+                        <span style="font-weight:600; color:#1E293B">${row.Module}</span><br>
+                        <span style="font-size:11px; color:#94A3B8">${row.Block}</span>
+                    </td>
+                    <td style="color:#475569">${row.Requirement}</td>
+                    <td>${priorityBadge(row.Priority)}</td>
+                    <td>${badge(row['HRB (Legacy)'])}</td>
+                    <td>${badge(row['1C ERP (ZUP Corp)'])}</td>
+                    <td>${badge(row['SAP SuccessFactors'])}</td>
+                    <td>${priorityBadge(row['Risk Level'])}</td>
+                    <td><span style="font-weight: 700; color: ${row['Business Impact'] >= 8 ? 'var(--danger)' : row['Business Impact'] >= 5 ? 'var(--warning)' : '#64748B'}">${row['Business Impact']}/10</span></td>
+                `;
+                tbody.appendChild(tr);
+
+                // Compact Detail row
+                const detailTr = document.createElement('tr');
+                detailTr.className = 'detail-row';
+                detailTr.id = `detail-${row.ID}`;
+                detailTr.innerHTML = `
+                    <td colspan="10">
+                        <div class="detail-content">
+                            <div class="detail-compact">
+                                <div class="detail-item">
+                                    <div class="detail-item-label">1C Mürəkkəblik</div>
+                                    <div class="detail-item-value">${row['Complexity 1C'] || 'N/A'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-label">SAP Mürəkkəblik</div>
+                                    <div class="detail-item-value">${row['Complexity SAP'] || 'N/A'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-label">MoSCoW</div>
+                                    <div class="detail-item-value">${row['MoSCoW'] || 'N/A'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-label">1C Lisenziya</div>
+                                    <div class="detail-item-value">${row['License Cost 1C'] || 'N/A'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-label">SAP Lisenziya</div>
+                                    <div class="detail-item-value">${row['License Cost SAP'] || 'N/A'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-label">İstifadəçilər</div>
+                                    <div class="detail-item-value">${row['Users Affected'] || 'N/A'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-label">1C Dəstək</div>
+                                    <div class="detail-item-value">${row['Vendor Support 1C'] || 'N/A'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-label">SAP Dəstək</div>
+                                    <div class="detail-item-value">${row['Vendor Support SAP'] || 'N/A'}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-item-label">Cari Həll (HRB)</div>
+                                    <div class="detail-item-value" style="font-size: 11px;">${row['Current HRB Workaround'] || 'N/A'}</div>
+                                </div>
+                                ${row.Notes ? `
+                                <div class="detail-item" style="grid-column: 1 / -1; border-left-color: #3B82F6;">
+                                    <div class="detail-item-label">Əlavə Qeydlər</div>
+                                    <div class="detail-item-value" style="font-size: 12px; line-height: 1.5;">${row.Notes}</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(detailTr);
+            });
+        }
+
+        function toggleDetail(id) {
+            const detailRow = document.getElementById(`detail-${id}`);
+            const icon = document.getElementById(`icon-${id}`);
+            const mainRow = icon.closest('.main-row');
+            
+            if(detailRow.classList.contains('show')) {
+                detailRow.classList.remove('show');
+                mainRow.classList.remove('expanded');
+            } else {
+                document.querySelectorAll('.detail-row.show').forEach(row => row.classList.remove('show'));
+                document.querySelectorAll('.main-row.expanded').forEach(row => row.classList.remove('expanded'));
+                
+                detailRow.classList.add('show');
+                mainRow.classList.add('expanded');
+            }
+        }
+
+        function badge(val) {
+            return `<span class="badge b-${val}">${val}</span>`;
+        }
+
+        function priorityBadge(val) {
+            return `<span class="badge p-${val}">${val}</span>`;
+        }
+
+        function complexityBadge(val) {
+            if(!val || val === '' || val === 'N/A') return '<span style="color: #94A3B8; font-size: 12px;">N/A</span>';
+            const cleanVal = val.replace(' ', '.');
+            return `<span class="badge c-${cleanVal}">${val}</span>`;
+        }
+
+        function updateTableStats(data) {
+            document.getElementById('total-reqs').textContent = data.length;
+            const critical = data.filter(r => r.Priority === 'Critical').length;
+            document.getElementById('critical-reqs').textContent = critical;
+        }
+
+        function openModal(id) {
+            const row = globalData.find(r => r.ID == id);
+            if(!row) return;
+
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-req').value = row.Requirement;
+            document.getElementById('edit-priority').value = row.Priority;
+            document.getElementById('edit-hrb').value = row['HRB (Legacy)'];
+            document.getElementById('edit-1c').value = row['1C ERP (ZUP Corp)'];
+            document.getElementById('edit-sap').value = row['SAP SuccessFactors'];
+            document.getElementById('edit-risk').value = row['Risk Level'];
+            document.getElementById('edit-notes').value = row.Notes || '';
+
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function saveChanges() {
+            const btn = document.getElementById('btn-save');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saxlanılır...`;
+            btn.disabled = true;
+
+            const id = document.getElementById('edit-id').value;
+            
+            const payload = {
+                ID: id,
+                Requirement: document.getElementById('edit-req').value,
+                Priority: document.getElementById('edit-priority').value,
+                'HRB (Legacy)': document.getElementById('edit-hrb').value,
+                '1C ERP (ZUP Corp)': document.getElementById('edit-1c').value,
+                'SAP SuccessFactors': document.getElementById('edit-sap').value,
+                'Risk Level': document.getElementById('edit-risk').value,
+                Notes: document.getElementById('edit-notes').value,
+                action: 'updateRow'
+            };
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res.success) {
+                    const index = globalData.findIndex(r => r.ID == id);
+                    if(index > -1) {
+                        globalData[index] = { ...globalData[index], ...payload };
+                        delete globalData[index].action;
+                    }
+                    
+                    renderTable(globalData);
+                    calcScores(globalData);
+                    closeModal();
+                } else {
+                    alert('Məlumat saxlanılarkən xəta baş verdi');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Əlaqə xətası');
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        function calcScores(data) {
+            let s = { hrb: 0, c1: 0, sap: 0 };
+            const max = data.length * 100;
+            
+            data.forEach(r => {
+                s.hrb += p(r['HRB (Legacy)']);
+                s.c1 += p(r['1C ERP (ZUP Corp)']);
+                s.sap += p(r['SAP SuccessFactors']);
+            });
+
+            updateUI('hrb', s.hrb, max);
+            updateUI('1c', s.c1, max);
+            updateUI('sap', s.sap, max);
+        }
+
+        function p(val) { return val === 'Yes' ? 100 : (val === 'No' ? 0 : 50); }
+        
+        function updateUI(k, val, max) {
+            const pct = Math.round((val/max)*100);
+            document.getElementById('sc-'+k).innerText = pct + '%';
+            document.getElementById('bar-'+k).style.width = pct + '%';
+        }
+
+        function showAboutModal(system) {
+            const info = systemDescriptions[system];
+            const analysis = analyzSystem(system === 'hrb' ? 'HRB (Legacy)' : system === '1c' ? '1C ERP (ZUP Corp)' : 'SAP SuccessFactors');
+
+            document.getElementById('about-title').textContent = info.title;
+            document.getElementById('about-subtitle').textContent = info.subtitle;
+            document.getElementById('about-header').style.setProperty('--system-color', info.color);
+            document.getElementById('about-header').style.background = `linear-gradient(135deg, ${info.color} 0%, rgba(0,0,0,0.7) 100%)`;
+            
+            document.getElementById('about-score').textContent = analysis.score + '%';
+            document.getElementById('about-score').style.color = info.color;
+            document.getElementById('about-supported').textContent = analysis.yes;
+            document.getElementById('about-supported').style.color = info.color;
+            document.getElementById('about-partial').textContent = analysis.partial + analysis.custom;
+            document.getElementById('about-partial').style.color = info.color;
+            document.getElementById('about-missing').textContent = analysis.no;
+            document.getElementById('about-missing').style.color = info.color;
+            
+            document.getElementById('about-description').textContent = info.description;
+            
+            const prosList = document.getElementById('about-pros-list');
+            prosList.innerHTML = '';
+            info.pros.forEach(pro => {
+                const li = document.createElement('li');
+                li.textContent = pro;
+                prosList.appendChild(li);
+            });
+            
+            const consList = document.getElementById('about-cons-list');
+            consList.innerHTML = '';
+            info.cons.forEach(con => {
+                const li = document.createElement('li');
+                li.textContent = con;
+                consList.appendChild(li);
+            });
+
+            document.getElementById('aboutModal').style.display = 'flex';
+        }
+
+        function closeAboutModal() {
+            document.getElementById('aboutModal').style.display = 'none';
+        }
+
+        function showProsConsModal(system) {
+            const systemMap = {
+                'hrb': { name: 'HRB (Mövcud Sistem)', field: 'HRB (Legacy)', color: '#94A3B8' },
+                '1c': { name: '1C ERP (ZUP Corp)', field: '1C ERP (ZUP Corp)', color: '#ED1C24' },
+                'sap': { name: 'SAP SuccessFactors', field: 'SAP SuccessFactors', color: '#3B82F6' }
+            };
+
+            const sys = systemMap[system];
+            const analysis = analyzSystem(sys.field);
+
+            document.getElementById('pc-system-name').textContent = sys.name + ' - Ətraflı Analiz';
+            document.getElementById('pc-score').textContent = analysis.score + '%';
+            document.getElementById('pc-score').style.color = sys.color;
+
+            document.getElementById('pc-total').textContent = analysis.total;
+            document.getElementById('pc-yes').textContent = analysis.yes;
+            document.getElementById('pc-partial').textContent = analysis.partial + analysis.custom;
+            document.getElementById('pc-no').textContent = analysis.no;
+
+            const prosList = document.getElementById('pros-list');
+            prosList.innerHTML = '';
+            analysis.pros.forEach(pro => {
+                const li = document.createElement('li');
+                li.style.cssText = 'padding: 12px 16px; margin-bottom: 8px; background: #F0FDF4; border-left: 3px solid var(--success); border-radius: 8px; font-size: 14px;';
+                li.textContent = pro;
+                prosList.appendChild(li);
+            });
+
+            const consList = document.getElementById('cons-list');
+            consList.innerHTML = '';
+            analysis.cons.forEach(con => {
+                const li = document.createElement('li');
+                li.style.cssText = 'padding: 12px 16px; margin-bottom: 8px; background: #FEF2F2; border-left: 3px solid var(--danger); border-radius: 8px; font-size: 14px;';
+                li.textContent = con;
+                consList.appendChild(li);
+            });
+
+            const categoryDiv = document.getElementById('category-breakdown');
+            categoryDiv.innerHTML = '';
+            Object.entries(analysis.categoryScores).forEach(([category, score]) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F1F5F9;';
+                item.innerHTML = `
+                    <span style="font-size: 14px; color: #475569; font-weight: 500;">${category}</span>
+                    <span style="font-size: 14px; font-weight: 700; color: ${score > 70 ? 'var(--success)' : score > 40 ? 'var(--warning)' : 'var(--danger)'}">${score}%</span>
+                `;
+                categoryDiv.appendChild(item);
+            });
+
+            document.getElementById('prosConsModal').style.display = 'flex';
+        }
+
+        function closeProsConsModal() {
+            document.getElementById('prosConsModal').style.display = 'none';
+        }
+
+        function analyzSystem(fieldName) {
+            const data = globalData;
+            const scores = { yes: 0, partial: 0, custom: 0, no: 0 };
+            const categoryScores = {};
+            const categoryCount = {};
+
+            data.forEach(row => {
+                const val = row[fieldName];
+                const module = row.Module;
+
+                if(val === 'Yes') scores.yes++;
+                else if(val === 'Partial') scores.partial++;
+                else if(val === 'Custom') scores.custom++;
+                else scores.no++;
+
+                if(!categoryScores[module]) {
+                    categoryScores[module] = 0;
+                    categoryCount[module] = 0;
+                }
+                categoryScores[module] += p(val);
+                categoryCount[module]++;
+            });
+
+            Object.keys(categoryScores).forEach(cat => {
+                categoryScores[cat] = Math.round((categoryScores[cat] / (categoryCount[cat] * 100)) * 100);
+            });
+
+            const totalScore = Math.round(((scores.yes * 100 + scores.partial * 50 + scores.custom * 50) / (data.length * 100)) * 100);
+
+            const pros = [];
+            if(scores.yes > 0) pros.push(`${scores.yes} tələb tam dəstəklənir (${Math.round(scores.yes/data.length*100)}%)`);
+            if(scores.partial > 0) pros.push(`${scores.partial} tələb qismən mövcuddur`);
+            if(scores.custom > 0) pros.push(`${scores.custom} tələb konfiqurasiya ilə əldə edilə bilər`);
+            
+            const strongCategories = Object.entries(categoryScores)
+                .filter(([_, score]) => score >= 70)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3);
+            
+            strongCategories.forEach(([cat, score]) => {
+                pros.push(`${cat} modulunda güclü əhatə (${score}%)`);
+            });
+
+            if(pros.length === 0) pros.push('Əsas funksiyalar mövcuddur');
+
+            const cons = [];
+            if(scores.no > 0) cons.push(`${scores.no} tələb dəstəklənmir (${Math.round(scores.no/data.length*100)}%)`);
+            if(scores.partial + scores.custom > data.length * 0.3) {
+                cons.push(`${scores.partial + scores.custom} tələb əlavə konfiqurasiya tələb edir`);
+            }
+
+            const weakCategories = Object.entries(categoryScores)
+                .filter(([_, score]) => score < 50)
+                .sort((a, b) => a[1] - b[1])
+                .slice(0, 3);
+            
+            weakCategories.forEach(([cat, score]) => {
+                cons.push(`${cat} modulunda zəif əhatə (${score}%)`);
+            });
+
+            if(cons.length === 0) cons.push('Ciddi çatışmazlıq aşkar edilməyib');
+
+            return {
+                score: totalScore,
+                total: data.length,
+                yes: scores.yes,
+                partial: scores.partial,
+                custom: scores.custom,
+                no: scores.no,
+                pros: pros,
+                cons: cons,
+                categoryScores: categoryScores
+            };
+        }
+
+        window.onclick = function(event) {
+            const editModal = document.getElementById('editModal');
+            const pcModal = document.getElementById('prosConsModal');
+            const aboutModal = document.getElementById('aboutModal');
+            if (event.target == editModal) closeModal();
+            if (event.target == pcModal) closeProsConsModal();
+            if (event.target == aboutModal) closeAboutModal();
+        }
+    </script>
+</body>
+</html>
