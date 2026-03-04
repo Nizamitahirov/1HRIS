@@ -46,6 +46,67 @@
             from { transform: translateY(-20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+
+        /* Filter Dropdowns */
+        .filter-dropdown {
+            background: white;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .filter-dropdown:hover {
+            border-color: var(--primary);
+        }
+
+        .filter-dropdown i {
+            transition: transform 0.3s ease;
+            color: #94A3B8;
+        }
+
+        .filter-dropdown.active i {
+            transform: rotate(180deg);
+        }
+
+        .filter-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            margin-top: 4px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            z-index: 100;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .filter-option {
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-size: 13px;
+        }
+
+        .filter-option:hover {
+            background: var(--grey);
+        }
+
+        .filter-option input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
         
         /* Enhanced Cards */
         .cards-grid { 
@@ -222,7 +283,7 @@
             transform: translateY(-2px);
         }
 
-        /* Table with Expandable Rows */
+        /* Table */
         .table-container { 
             background: white; 
             border-radius: 16px; 
@@ -305,6 +366,10 @@
             background-color: #FFF5F5;
         }
 
+        .main-row.filtered-out {
+            display: none;
+        }
+
         .expand-icon {
             transition: transform 0.3s ease;
             color: #94A3B8;
@@ -315,7 +380,7 @@
             color: var(--primary);
         }
 
-        /* COMPACT Detail Row */
+        /* Compact Detail Row */
         .detail-row {
             display: none;
             background: linear-gradient(135deg, #FAFBFC 0%, #F8FAFC 100%);
@@ -325,6 +390,10 @@
         .detail-row.show {
             display: table-row;
             animation: slideDown 0.3s ease;
+        }
+
+        .detail-row.filtered-out {
+            display: none !important;
         }
 
         .detail-content {
@@ -360,23 +429,6 @@
             color: var(--dark);
         }
 
-        .detail-notes-compact {
-            background: white;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border-left: 3px solid #3B82F6;
-        }
-
-        .detail-notes-compact .detail-item-label {
-            margin-bottom: 6px;
-        }
-
-        .detail-notes-compact .detail-item-value {
-            font-size: 13px;
-            line-height: 1.5;
-            color: #475569;
-        }
-
         /* Badges */
         .badge { 
             padding: 5px 12px; 
@@ -403,11 +455,6 @@
         .p-High { background: #FED7AA; color: #9A3412; }
         .p-Medium { background: #FEF3C7; color: #92400E; }
         .p-Low { background: #E0E7FF; color: #3730A3; }
-
-        .c-Easy { background: #DCFCE7; color: #166534; }
-        .c-Medium { background: #FEF3C7; color: #92400E; }
-        .c-Complex { background: #FED7AA; color: #9A3412; }
-        .c-Very.Complex { background: #FEE2E2; color: #991B1B; }
 
         /* Edit Button */
         .btn-edit {
@@ -766,6 +813,104 @@
         </div>
     </div>
 
+    <!-- FILTERS SECTION -->
+    <div style="background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; animation: slideDown 0.5s ease 0.2s backwards;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-size: 16px; font-weight: 700; color: var(--dark);">
+                <i class="fas fa-filter" style="color: var(--primary); margin-right: 8px;"></i>
+                Filterlər
+            </h3>
+            <button onclick="resetFilters()" style="padding: 8px 16px; background: var(--grey); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                <i class="fas fa-redo"></i> Sıfırla
+            </button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+            <!-- Status Filter -->
+            <div>
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #64748B; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Status (HRB, 1C, SAP)
+                </label>
+                <div style="position: relative;">
+                    <div class="filter-dropdown" id="status-dropdown" onclick="toggleDropdown('status')">
+                        <span id="status-selected">Hamısı</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="filter-options" id="status-options" style="display: none;">
+                        <label class="filter-option">
+                            <input type="checkbox" value="Yes" onchange="updateFilters('status')"> Yes
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" value="Partial" onchange="updateFilters('status')"> Partial
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" value="Custom" onchange="updateFilters('status')"> Custom
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" value="No" onchange="updateFilters('status')"> No
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Priority Filter -->
+            <div>
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #64748B; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Prioritet
+                </label>
+                <div style="position: relative;">
+                    <div class="filter-dropdown" id="priority-dropdown" onclick="toggleDropdown('priority')">
+                        <span id="priority-selected">Hamısı</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="filter-options" id="priority-options" style="display: none;">
+                        <label class="filter-option">
+                            <input type="checkbox" value="Critical" onchange="updateFilters('priority')"> Critical
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" value="High" onchange="updateFilters('priority')"> High
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" value="Medium" onchange="updateFilters('priority')"> Medium
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" value="Low" onchange="updateFilters('priority')"> Low
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Filter -->
+            <div>
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #64748B; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Risk Səviyyəsi
+                </label>
+                <div style="position: relative;">
+                    <div class="filter-dropdown" id="risk-dropdown" onclick="toggleDropdown('risk')">
+                        <span id="risk-selected">Hamısı</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="filter-options" id="risk-options" style="display: none;">
+                        <label class="filter-option">
+                            <input type="checkbox" value="Critical" onchange="updateFilters('risk')"> Critical
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" value="High" onchange="updateFilters('risk')"> High
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" value="Medium" onchange="updateFilters('risk')"> Medium
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" value="Low" onchange="updateFilters('risk')"> Low
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="filter-summary" style="margin-top: 15px; padding: 10px; background: var(--grey); border-radius: 6px; font-size: 12px; color: #64748B; display: none;">
+            <strong>Aktiv filterlər:</strong> <span id="filter-summary-text"></span>
+        </div>
+    </div>
+
     <div class="cards-grid">
         <!-- HRB Card -->
         <div class="system-card" data-system="hrb">
@@ -863,6 +1008,10 @@
                 <div class="table-stat">
                     <div class="table-stat-value" style="color: var(--danger);" id="critical-reqs">0</div>
                     <div class="table-stat-label">Kritik</div>
+                </div>
+                <div class="table-stat">
+                    <div class="table-stat-value" style="color: var(--primary);" id="filtered-reqs">0</div>
+                    <div class="table-stat-label">Göstərilən</div>
                 </div>
             </div>
         </div>
@@ -1074,26 +1223,28 @@
         // ==========================================
 
         let globalData = [];
+        let activeFilters = {
+            status: [],
+            priority: [],
+            risk: []
+        };
 
         const systemDescriptions = {
             hrb: {
                 title: "HRB (Mövcud Sistem)",
                 subtitle: "On-Premise Həll",
                 color: "#94A3B8",
-                description: "HRB hazırda Birbank (ana şirkət) tərəfindən istifadə olunan legacy HR idarəetmə sistemidir. Qeyd edək ki, bu sistem törəmə şirkətlər tərəfindən istifadə olunmur və yalnız ana şirkətdə fəaliyyət göstərir. Ənənəvi arxitektura əsasında qurulmuş bu sistem, əsas HR əməliyyatlarını - işçi qeydlərini, əsas maaş hesablamalarını və məzuniyyət idarəetməsini təmin edir. Gündəlik əməliyyatlar üçün funksional olsa da, məhdud inteqrasiya imkanları, köhnəlmiş istifadəçi interfeysi və müasir HR təcrübələrinin dəstəklənməsində çətinliklər sistemi ümumi şirkət strukturuna tətbiq etməyi mürəkkəbləşdirir. Platform öz zamanında xidmət göstərsə də, gələcək böyümə və rəqəmsal transformasiya təşəbbüsləri üçün tələb olunan genişlənmə və funksiyalardan məhrumdur.",
+                description: "HRB hazırda Birbank (ana şirkət) tərəfindən istifadə olunan legacy HR idarəetmə sistemidir. Qeyd edək ki, bu sistem törəmə şirkətlər tərəfindən istifadə olunmur və yalnız ana şirkətdə fəaliyyət göstərir.",
                 pros: [
-                    "Birbank əməkdaşları sistemi istifadə edir",
+                    "Birbank əməkdaşları sistemi məlum edir",
                     "Ana şirkətin mövcud prosesləri ilə tam uyğundur",
-                    "İstifadəyə verilən andan bütün məlumatlar var",
-                    "Əsas funksiyalar işləyir",
-                    "Lokal texniki dəstək mövcuddur"
+                    "İllik bütün məlumatlar sistemdədir",
+                    "Əsas funksiyalar işləyir"
                 ],
                 cons: [
                     "Yalnız Birbank (ana şirkət) tərəfindən istifadə olunur",
                     "Törəmə şirkətlər üçün dəstək yoxdur",
                     "Köhnəlmiş texnologiya və interfeys",
-                    "Mobil əlçatanlıq yoxdur",
-                    "Zəif inteqrasiya imkanları",
                     "Multi-company strukturu dəstəkləmir"
                 ]
             },
@@ -1101,22 +1252,17 @@
                 title: "1C ERP (ZUP Corp)",
                 subtitle: "Regional Həll Təklifi",
                 color: "#ED1C24",
-                description: "1C ERP MDB ölkələri və Azərbaycanda geniş yayılmış kompleks korporativ resurs planlaşdırma həllidir. Sistem xüsusilə Azərbaycanın mürəkkəb əmək qanunvericiliyi, vergi dərəcələri və DSMF və vergi orqanlarına məcburi hesabat tələbləri ilə əla uyğunlaşır. Güclü maliyyə sistemi inteqrasiyası və çevik konfiqurasiya imkanları ilə 1C, lokal qanunvericilik ilə tam uyğunluğu saxlayaraq modernləşdirməyə səmərəli yol təklif edir. Platformanın Azərbaycanda geniş istifadəsi lokal ekspertiza və dəstəyin mövcudluğunu təmin edir, lakin qlobal ən yaxşı təcrübələr üçün xüsusi konfiqurasiya tələb edə bilər.",
+                description: "1C ERP MDB ölkələri və Azərbaycanda geniş yayılmış kompleks korporativ resurs planlaşdırma həllidir. Sistem xüsusilə Azərbaycanın mürəkkəb əmək qanunvericiliyi ilə əla uyğunlaşır.",
                 pros: [
                     "Azərbaycan Əmək Məcəlləsinə tam uyğunluq",
                     "1-Əmək, 4-Əmək, DSMF hesabatları native",
                     "Maliyyə sistemləri ilə güclü inteqrasiya",
-                    "Lokal texniki dəstək və ekspertiza",
-                    "SAP-dan 3-4 dəfə ucuz qiymət",
-                    "Qısa implementasiya müddəti (6-8 ay)",
-                    "Multi-company konfiqurasiya mümkündür"
+                    "SAP-dan 3-4 dəfə ucuz qiymət"
                 ],
                 cons: [
                     "Zəif mobil tətbiqlər",
-                    "Cloud-native deyil (əsasən on-premise)",
-                    "Talent management funksiyaları məhdud",
-                    "Global HR best practices custom tələb edir",
-                    "Modern UX/UI yoxdur",
+                    "Cloud-native deyil",
+                    "Talent management məhdud",
                     "AI-powered analitika yoxdur"
                 ]
             },
@@ -1124,23 +1270,18 @@
                 title: "SAP SuccessFactors",
                 subtitle: "Korporativ Cloud Platforma",
                 color: "#3B82F6",
-                description: "SAP SuccessFactors qlobal səviyyədə minlərlə müəssisənin etibar etdiyi, sənaye liderliyi edən cloud-based İnsan Kapitalı İdarəetmə paketidir. Platform süni intellekt və maşın öyrənməsi ilə gücləndərilmiş kompleks talent management, işçi qüvvəsi planlaşdırması və analitika imkanları təqdim edir. İşə qəbuldan çıxışa qədər bütün işçi həyat tsiklini əhatə edən modulları ilə SuccessFactors dünya səviyyəli HR təcrübələrini mümkün edir və işçi qüvvəsi meyllərı haqqında dərin fikirlər verir. Lakin korporativ fokus daha yüksək xərc və tətbiqetmə mürəkkəbliyi deməkdir, habelə Azərbaycan-spesifik uyğunluq xüsusiyyətləri xüsusi inkişaf və davamlı xidmət tələb edir.",
+                description: "SAP SuccessFactors qlobal səviyyədə minlərlə müəssisənin etibar etdiyi cloud-based İnsan Kapitalı İdarəetmə paketidir.",
                 pros: [
                     "100+ ölkə üçün qlobal lokalizasiya",
-                    "AI-powered analitika və proqnozlaşdırma",
-                    "Native cloud platforma (daim yenilənir)",
-                    "Talent management best practices",
-                    "Enterprise-grade və şkalalama",
-                    "Native mobil tətbiqlər (iOS/Android)",
-                    "Güclü multi-entity dəstəyi"
+                    "AI-powered analitika",
+                    "Native cloud platforma",
+                    "Native mobil tətbiqlər"
                 ],
                 cons: [
-                    "Yüksək qiymət ($8-20 PEPM, illik hesablanmalıdır - custom)",
-                    "AZ Əmək Məcəlləsi custom development tələb edir",
-                    "Uzun implementasiya müddəti (12-18 ay)",
-                    "1-Əmək, 4-Əmək DSMF hesabatları- custom",
-                    "Azərbaycan dili dəstəyi partial",
-                    "Kiçik şirkətlər üçün bəzi modullar mövcud deyil"
+                    "Yüksək qiymət ($28-38 PEPM)",
+                    "AZ Əmək Məcəlləsi custom tələb edir",
+                    "Uzun tətbiqetmə (6-12 ay)",
+                    "AZ dili partial"
                 ]
             }
         };
@@ -1159,16 +1300,131 @@
                 .then(data => {
                     globalData = data;
                     renderTable(data);
-                    calcScores(data);
-                    updateTableStats(data);
+                    applyFilters();
                     setTimeout(() => {
                         document.getElementById('loader').style.display = 'none';
                     }, 1000);
                 })
                 .catch(err => {
                     console.error(err);
-                    alert('Məlumat yüklənərkən xəta baş verdi. API URL-ni yoxlayın.');
+                    alert('Məlumat yüklənərkən xəta baş verdi.');
                 });
+        }
+
+        // FILTER FUNCTIONS
+        function toggleDropdown(type) {
+            const dropdown = document.getElementById(type + '-dropdown');
+            const options = document.getElementById(type + '-options');
+            const isActive = options.style.display === 'block';
+            
+            // Close all dropdowns first
+            document.querySelectorAll('.filter-options').forEach(opt => opt.style.display = 'none');
+            document.querySelectorAll('.filter-dropdown').forEach(dd => dd.classList.remove('active'));
+            
+            if (!isActive) {
+                options.style.display = 'block';
+                dropdown.classList.add('active');
+            }
+        }
+
+        function updateFilters(type) {
+            const checkboxes = document.querySelectorAll(`#${type}-options input[type="checkbox"]:checked`);
+            activeFilters[type] = Array.from(checkboxes).map(cb => cb.value);
+            
+            // Update dropdown label
+            const label = document.getElementById(type + '-selected');
+            if (activeFilters[type].length === 0) {
+                label.textContent = 'Hamısı';
+            } else {
+                label.textContent = activeFilters[type].join(', ');
+            }
+            
+            applyFilters();
+            updateFilterSummary();
+        }
+
+        function resetFilters() {
+            activeFilters = { status: [], priority: [], risk: [] };
+            
+            // Uncheck all checkboxes
+            document.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
+            // Reset labels
+            document.getElementById('status-selected').textContent = 'Hamısı';
+            document.getElementById('priority-selected').textContent = 'Hamısı';
+            document.getElementById('risk-selected').textContent = 'Hamısı';
+            
+            applyFilters();
+            updateFilterSummary();
+        }
+
+        function updateFilterSummary() {
+            const summary = document.getElementById('filter-summary');
+            const summaryText = document.getElementById('filter-summary-text');
+            
+            const parts = [];
+            if (activeFilters.status.length > 0) parts.push(`Status: ${activeFilters.status.join(', ')}`);
+            if (activeFilters.priority.length > 0) parts.push(`Prioritet: ${activeFilters.priority.join(', ')}`);
+            if (activeFilters.risk.length > 0) parts.push(`Risk: ${activeFilters.risk.join(', ')}`);
+            
+            if (parts.length > 0) {
+                summary.style.display = 'block';
+                summaryText.textContent = parts.join(' | ');
+            } else {
+                summary.style.display = 'none';
+            }
+        }
+
+        function getFilteredData() {
+            return globalData.filter(row => {
+                // Status filter - check if ANY of the three columns match
+                if (activeFilters.status.length > 0) {
+                    const hasMatch = activeFilters.status.some(status => 
+                        row['HRB (Legacy)'] === status ||
+                        row['1C ERP (ZUP Corp)'] === status ||
+                        row['SAP SuccessFactors'] === status
+                    );
+                    if (!hasMatch) return false;
+                }
+                
+                // Priority filter
+                if (activeFilters.priority.length > 0 && !activeFilters.priority.includes(row.Priority)) {
+                    return false;
+                }
+                
+                // Risk filter
+                if (activeFilters.risk.length > 0 && !activeFilters.risk.includes(row['Risk Level'])) {
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+
+        function applyFilters() {
+            const filteredData = getFilteredData();
+            
+            // Update table visibility
+            const allRows = document.querySelectorAll('.main-row');
+            allRows.forEach((row, index) => {
+                const rowData = globalData[index];
+                const isVisible = filteredData.includes(rowData);
+                
+                const mainRow = row;
+                const detailRow = document.getElementById(`detail-${rowData.ID}`);
+                
+                if (isVisible) {
+                    mainRow.classList.remove('filtered-out');
+                    if(detailRow) detailRow.classList.remove('filtered-out');
+                } else {
+                    mainRow.classList.add('filtered-out');
+                    if(detailRow) detailRow.classList.add('filtered-out');
+                }
+            });
+            
+            // Recalculate scores and stats
+            calcScores(filteredData);
+            updateTableStats(filteredData);
         }
 
         function renderTable(data) {
@@ -1176,7 +1432,6 @@
             tbody.innerHTML = '';
             
             data.forEach((row, index) => {
-                // Main row
                 const tr = document.createElement('tr');
                 tr.className = 'main-row';
                 tr.onclick = () => toggleDetail(row.ID);
@@ -1203,7 +1458,6 @@
                 `;
                 tbody.appendChild(tr);
 
-                // Compact Detail row
                 const detailTr = document.createElement('tr');
                 detailTr.className = 'detail-row';
                 detailTr.id = `detail-${row.ID}`;
@@ -1286,14 +1540,9 @@
             return `<span class="badge p-${val}">${val}</span>`;
         }
 
-        function complexityBadge(val) {
-            if(!val || val === '' || val === 'N/A') return '<span style="color: #94A3B8; font-size: 12px;">N/A</span>';
-            const cleanVal = val.replace(' ', '.');
-            return `<span class="badge c-${cleanVal}">${val}</span>`;
-        }
-
         function updateTableStats(data) {
-            document.getElementById('total-reqs').textContent = data.length;
+            document.getElementById('total-reqs').textContent = globalData.length;
+            document.getElementById('filtered-reqs').textContent = data.length;
             const critical = data.filter(r => r.Priority === 'Critical').length;
             document.getElementById('critical-reqs').textContent = critical;
         }
@@ -1352,7 +1601,7 @@
                     }
                     
                     renderTable(globalData);
-                    calcScores(globalData);
+                    applyFilters();
                     closeModal();
                 } else {
                     alert('Məlumat saxlanılarkən xəta baş verdi');
@@ -1371,6 +1620,13 @@
         function calcScores(data) {
             let s = { hrb: 0, c1: 0, sap: 0 };
             const max = data.length * 100;
+            
+            if (data.length === 0) {
+                updateUI('hrb', 0, 100);
+                updateUI('1c', 0, 100);
+                updateUI('sap', 0, 100);
+                return;
+            }
             
             data.forEach(r => {
                 s.hrb += p(r['HRB (Legacy)']);
@@ -1393,7 +1649,8 @@
 
         function showAboutModal(system) {
             const info = systemDescriptions[system];
-            const analysis = analyzSystem(system === 'hrb' ? 'HRB (Legacy)' : system === '1c' ? '1C ERP (ZUP Corp)' : 'SAP SuccessFactors');
+            const filteredData = getFilteredData();
+            const analysis = analyzSystem(system === 'hrb' ? 'HRB (Legacy)' : system === '1c' ? '1C ERP (ZUP Corp)' : 'SAP SuccessFactors', filteredData);
 
             document.getElementById('about-title').textContent = info.title;
             document.getElementById('about-subtitle').textContent = info.subtitle;
@@ -1442,7 +1699,8 @@
             };
 
             const sys = systemMap[system];
-            const analysis = analyzSystem(sys.field);
+            const filteredData = getFilteredData();
+            const analysis = analyzSystem(sys.field, filteredData);
 
             document.getElementById('pc-system-name').textContent = sys.name + ' - Ətraflı Analiz';
             document.getElementById('pc-score').textContent = analysis.score + '%';
@@ -1490,8 +1748,7 @@
             document.getElementById('prosConsModal').style.display = 'none';
         }
 
-        function analyzSystem(fieldName) {
-            const data = globalData;
+        function analyzSystem(fieldName, data) {
             const scores = { yes: 0, partial: 0, custom: 0, no: 0 };
             const categoryScores = {};
             const categoryCount = {};
@@ -1517,7 +1774,7 @@
                 categoryScores[cat] = Math.round((categoryScores[cat] / (categoryCount[cat] * 100)) * 100);
             });
 
-            const totalScore = Math.round(((scores.yes * 100 + scores.partial * 50 + scores.custom * 50) / (data.length * 100)) * 100);
+            const totalScore = data.length > 0 ? Math.round(((scores.yes * 100 + scores.partial * 50 + scores.custom * 50) / (data.length * 100)) * 100) : 0;
 
             const pros = [];
             if(scores.yes > 0) pros.push(`${scores.yes} tələb tam dəstəklənir (${Math.round(scores.yes/data.length*100)}%)`);
@@ -1564,6 +1821,14 @@
                 categoryScores: categoryScores
             };
         }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.filter-dropdown') && !e.target.closest('.filter-options')) {
+                document.querySelectorAll('.filter-options').forEach(opt => opt.style.display = 'none');
+                document.querySelectorAll('.filter-dropdown').forEach(dd => dd.classList.remove('active'));
+            }
+        });
 
         window.onclick = function(event) {
             const editModal = document.getElementById('editModal');
